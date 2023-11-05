@@ -1,0 +1,59 @@
+-- Simple Queries
+1. What food item has the highest protein?
+
+CREATE TABLE IF NOT EXISTS food (Name STRING, Calories FLOAT, Fat FLOAT, Carb FLOAT, Fiber FLOAT, Protein FLOAT)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ","
+STORED AS TEXTFILE;
+
+LOAD DATA LOCAL INPATH 'starbucks_clean/starbucks_food/part-m-00000'
+OVERWRITE INTO TABLE food;
+
+SELECT * FROM food
+ORDER BY Protein DESC
+Limit 1;
+
+
+2. What drinks have more than 250 calories?
+
+CREATE TABLE IF NOT EXISTS drinks (Name STRING, Calories FLOAT, Fat FLOAT, Carb FLOAT, Fiber FLOAT, Protein FLOAT, Sodium FLOAT)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ","
+STORED AS TEXTFILE;
+
+LOAD DATA LOCAL INPATH 'starbucks_clean/clean_drinks/part-m-00000'
+OVERWRITE INTO TABLE drinks;
+
+
+SELECT * FROM drinks
+WHERE Calories > 250
+ORDER BY Calories DESC;
+
+-- Complex Queries
+1. Beverage Category - Calories vs. Protein
+
+Select Beverage_category, ROUND(AVG(Calories), 2) AS Average_Calories, ROUND(AVG(Protein), 2) AS Average_Protein
+FROM starbucks_menu
+GROUP BY Beverage_category
+ORDER BY Average_protein DESC;
+
+2. Join Query
+SELECT
+COALESCE(d.Name, f.Name) AS Item_Name,
+COALESCE(d.Calories, f.Calories) AS Calories,
+COALESCE(d.Fat, f.Fat) AS Fat,
+COALESCE(d.Carb, f.Carb) AS Carb,
+COALESCE(d.Fiber, f.Fiber) AS Fiber,
+COALESCE(d.Protein, f.Protein) AS Protein
+FROM drinks d
+FULL OUTER JOIN food f
+ON d.Name = f.Name;
+
+3. Sampling Query
+SELECT *
+FROM starbucks_menu
+WHERE Beverage_category = "Smoothies" AND RAND() <= 0.25
+UNION ALL
+SELECT *
+FROM starbucks_menu
+WHERE Beverage_category = "Signature Espresso Drinks" AND RAND() <= 0.10;
